@@ -22,8 +22,8 @@ Recipient's feed: [🔒 Encrypted message — click to decrypt]
 Click → decrypted locally in their browser → plaintext shown inline
 ```
 
-Keys are generated in the browser and stored in `chrome.storage.local`. They never leave your device.
-
+Keys are generated in the browser and stored in `storage.local` . They never leave your device.
+![how it works](https://github.com/retiredroca/CryptoChat/blob/main/validation-testing.gif?raw=true)
 ---
 
 ## Supported platforms
