@@ -1,0 +1,67 @@
+{
+  "manifest_version": 3,
+  "name": "CryptoChat",
+  "version": "0.5.0",
+  "description": "E2E encrypted messaging on various chat platforms. Supports ECDH keys and GPG/OpenPGP import.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://discord.com/*",
+    "https://app.slack.com/*",
+    "https://web.whatsapp.com/*",
+    "https://web.telegram.org/*",
+    "https://www.instagram.com/*",
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://www.facebook.com/*",
+    "https://messenger.com/*",
+    "https://retiredroca.github.io/*"
+  ],
+  "background": {
+    "service_worker": "src/background-loader.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://discord.com/*",
+        "https://app.slack.com/*",
+        "https://web.whatsapp.com/*",
+        "https://web.telegram.org/*",
+        "https://www.instagram.com/*",
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://www.facebook.com/*",
+        "https://messenger.com/*",
+        "https://retiredroca.github.io/*"
+      ],
+      "js": [
+        "src/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/ui/popup.html",
+    "default_title": "CryptoChat",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "cryptochat@extension",
+      "strict_min_version": "109.0"
+    }
+  }
+}

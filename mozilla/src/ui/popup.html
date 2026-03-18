@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CryptoChat</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <rect width="22" height="22" rx="6" fill="#6C4FF0"/>
+        <rect x="6" y="10" width="10" height="9" rx="2" fill="white" opacity="0.95"/>
+        <path d="M8 10V8a3 3 0 016 0v2" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      </svg>
+      <span class="logo-name">CryptoChat</span>
+      <span class="version">v0.6</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a id="gh-header-link" href="https://github.com/retiredroca/CryptoChat" target="_blank"
+         title="GitHub" style="color:var(--tx3);display:flex;align-items:center;line-height:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483
+            0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466
+            -.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832
+            .092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688
+            -.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004
+            1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651
+            .64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855
+            0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017
+            C22 6.484 17.522 2 12 2z"/>
+        </svg>
+      </a>
+      <div id="status-dot" class="dot inactive" title="No supported platform"></div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active"  data-tab="compose">Compose</button>
+    <button class="tab"         data-tab="contacts">Contacts</button>
+    <button class="tab"         data-tab="keys">My Keys</button>
+    <button class="tab"         data-tab="settings">Settings</button>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════ COMPOSE -->
+  <div class="panel active" id="tab-compose">
+
+    <div id="platform-bar" class="platform-bar">
+      <span id="platform-label">Detecting platform…</span>
+    </div>
+
+    <!-- Mode toggle -->
+    <div class="mode-row">
+      <button id="mode-1to1"  class="mode-btn active" data-mode="1to1">1:1</button>
+      <button id="mode-group" class="mode-btn"         data-mode="group">
+        Group
+        <span class="new-badge">NEW</span>
+      </button>
+    </div>
+
+    <!-- 1:1 recipient -->
+    <div id="section-1to1">
+      <label class="field-label">Recipient</label>
+      <div class="row-gap">
+        <select id="recipient-select" style="flex:1">
+          <option value="">— select contact —</option>
+        </select>
+        <button id="go-add-contact" class="btn-ghost btn-xs">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Group recipients -->
+    <div id="section-group" class="hidden">
+      <label class="field-label">Recipients <span id="group-count" class="count-badge">0</span></label>
+      <div id="group-recipient-list" class="group-list"></div>
+      <div id="group-empty" class="group-empty">No contacts — add some first.</div>
+    </div>
+
+    <!-- Message input -->
+    <label class="field-label">
+      Message
+      <span class="algo-badge">AES-256-GCM · ECDH</span>
+    </label>
+    <textarea id="plaintext" placeholder="Type your private message…" rows="4"></textarea>
+
+    <button id="btn-encrypt" class="btn-primary" disabled>
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="margin-right:5px;flex-shrink:0">
+        <rect x="2.5" y="5.5" width="8" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        <path d="M4.5 5.5V4a2 2 0 014 0v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+      </svg>
+      <span id="btn-encrypt-label">Encrypt &amp; inject</span>
+    </button>
+
+    <div id="cipher-wrap" class="cipher-wrap hidden">
+      <div class="cipher-hdr">
+        <span class="cipher-hdr-text">Injected ciphertext</span>
+        <button id="btn-copy-cipher" class="btn-ghost btn-xs">Copy</button>
+      </div>
+      <pre id="cipher-pre"></pre>
+    </div>
+
+    <div id="compose-err" class="err-banner hidden"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ CONTACTS -->
+  <div class="panel hidden" id="tab-contacts">
+
+    <div id="contacts-list"></div>
+
+    <!-- Add contact form -->
+    <details class="add-contact-details" id="add-contact-section">
+      <summary class="add-contact-summary">+ Add contact</summary>
+      <div class="add-contact-body">
+
+        <label class="field-label">Handle <span class="hint">(e.g. @alice or alice#1234)</span></label>
+        <input id="nc-handle"   class="text-input" placeholder="@alice" />
+
+        <label class="field-label" style="margin-top:8px">Platform</label>
+        <select id="nc-platform" class="text-input">
+          <option value="discord">Discord</option>
+          <option value="slack">Slack</option>
+          <option value="whatsapp">WhatsApp Web</option>
+          <option value="telegram">Telegram Web</option>
+          <option value="instagram">Instagram</option>
+          <option value="twitter">X / Twitter</option>
+          <option value="facebook">Facebook Messenger</option>
+        </select>
+
+        <label class="field-label" style="margin-top:8px">Display name <span class="hint">(optional)</span></label>
+        <input id="nc-displayname" class="text-input" placeholder="Alice" />
+
+        <!-- Key type toggle -->
+        <div class="key-type-row" style="margin-top:10px;">
+          <button class="key-type-btn active" data-ktype="native">Native key (base64)</button>
+          <button class="key-type-btn" data-ktype="gpg">GPG / Kleopatra armor</button>
+        </div>
+
+        <div id="ktype-native">
+          <label class="field-label" style="margin-top:8px">Public key (SPKI base64)</label>
+          <textarea id="nc-pubkey-native" class="text-input mono" rows="3" placeholder="MFkwEwYHKoZIzj0CAQY…"></textarea>
+          <div class="hint" style="margin-top:4px">From their "My Keys" tab → Copy button</div>
+        </div>
+
+        <div id="ktype-gpg" class="hidden">
+          <label class="field-label" style="margin-top:8px">GPG / OpenPGP public key (armored)</label>
+          <textarea id="nc-pubkey-gpg" class="text-input mono" rows="5"
+            placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----&#10;&#10;mQGNBGRe…&#10;-----END PGP PUBLIC KEY BLOCK-----"></textarea>
+          <div id="gpg-parse-result" class="gpg-parse-result hidden"></div>
+          <div class="hint" style="margin-top:4px">
+            Export from Kleopatra: right-click key → Export… → paste here.<br>
+            Supports ECC (P-256, P-384, P-521). RSA stored for future bridge.
+          </div>
+        </div>
+
+        <button id="btn-save-contact" class="btn-primary btn-sm" style="margin-top:12px">Save contact</button>
+        <div id="contact-err" class="err-banner hidden" style="margin-top:8px"></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ KEYS -->
+  <div class="panel hidden" id="tab-keys">
+    <div class="card">
+      <div class="card-title">Your public key</div>
+      <div class="card-sub">Share this with contacts. It's safe to send publicly.</div>
+
+      <div class="fp-row" id="fp-row">
+        <span class="fp-label">Fingerprint</span>
+        <code id="my-fingerprint" class="fp-val">—</code>
+      </div>
+
+      <pre id="my-pubkey" class="key-pre mono">Loading…</pre>
+      <div class="row-gap" style="margin-top:8px">
+        <button id="btn-copy-key"     class="btn-ghost btn-sm">Copy key</button>
+        <button id="btn-copy-pgp-hdr" class="btn-ghost btn-sm">Copy as PGP header</button>
+      </div>
+    </div>
+
+    <!-- ── Share link ── -->
+    <div class="card" id="card-share">
+      <div class="card-title">Share your key</div>
+      <div class="card-sub">
+        Generate a link anyone can click to add you as a contact instantly — no manual key pasting needed.
+      </div>
+
+      <label class="field-label">Your handle <span class="hint">(how contacts will see you)</span></label>
+      <input id="share-handle" class="text-input" placeholder="@yourname" />
+
+      <label class="field-label" style="margin-top:8px">Platform</label>
+      <select id="share-platform" class="text-input">
+        <option value="discord">Discord</option>
+        <option value="slack">Slack</option>
+        <option value="whatsapp">WhatsApp Web</option>
+        <option value="telegram">Telegram Web</option>
+        <option value="instagram">Instagram</option>
+        <option value="twitter">X / Twitter</option>
+        <option value="facebook">Facebook Messenger</option>
+      </select>
+
+      <label class="field-label" style="margin-top:8px">Display name <span class="hint">(optional)</span></label>
+      <input id="share-displayname" class="text-input" placeholder="Your Name" />
+
+      <button id="btn-gen-link" class="btn-primary btn-sm" style="margin-top:10px">Generate share link</button>
+
+      <div id="share-result" class="hidden" style="margin-top:10px">
+        <label class="field-label">Your share link</label>
+        <div class="share-link-box">
+          <span id="share-link-text" class="share-link-val"></span>
+          <button id="btn-copy-link" class="btn-ghost btn-xs">Copy</button>
+        </div>
+        <div class="hint" style="margin-top:5px">
+          Anyone who clicks this link and has CryptoChat installed can add you in one click.
+          The link contains only your public key — it's safe to share anywhere.
+        </div>
+      </div>
+      <div id="share-err" class="err-banner hidden" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card danger-card">
+      <div class="card-title danger-text">Revoke &amp; regenerate</div>
+      <div class="card-sub">Generates a new keypair. All contacts need your new key. Old messages unreadable.</div>
+      <button id="btn-revoke" class="btn-danger btn-sm" style="margin-top:10px">Revoke identity</button>
+    </div>
+
+    <!-- ── Export ── -->
+    <div class="card" id="card-export">
+      <div class="card-title">Export backup</div>
+      <div class="card-sub">
+        Saves your identity keypair and all contacts to an encrypted <code>.ccbackup</code> file.
+        Use this to move to a new browser or device.
+      </div>
+      <label class="field-label" style="margin-top:4px">Passphrase <span class="hint">(min 6 chars — protects your private key)</span></label>
+      <div class="row-gap">
+        <input type="password" id="export-pass" class="text-input" placeholder="Choose a strong passphrase" style="flex:1" />
+        <button id="btn-show-export-pass" class="btn-ghost btn-xs" data-visible="0">Show</button>
+      </div>
+      <label class="field-label" style="margin-top:8px">Confirm passphrase</label>
+      <input type="password" id="export-pass2" class="text-input" placeholder="Repeat passphrase" />
+      <button id="btn-export" class="btn-primary btn-sm" style="margin-top:10px">
+        Download .ccbackup
+      </button>
+      <div id="export-err" class="err-banner hidden" style="margin-top:8px"></div>
+      <div id="export-ok"  class="ok-banner  hidden" style="margin-top:8px"></div>
+    </div>
+
+    <!-- ── Import ── -->
+    <div class="card" id="card-import">
+      <div class="card-title">Import backup</div>
+      <div class="card-sub">Restore from a <code>.ccbackup</code> file. Choose merge to keep existing contacts, or replace to overwrite everything.</div>
+
+      <label class="field-label" style="margin-top:4px">Backup file</label>
+      <div class="file-drop-zone" id="import-drop">
+        <span id="import-drop-label">Drop .ccbackup here or <label for="import-file-input" class="file-link">browse</label></span>
+        <input type="file" id="import-file-input" accept=".ccbackup,.json" style="display:none" />
+      </div>
+
+      <label class="field-label" style="margin-top:8px">Passphrase</label>
+      <div class="row-gap">
+        <input type="password" id="import-pass" class="text-input" placeholder="Passphrase used when exporting" style="flex:1" />
+        <button id="btn-show-import-pass" class="btn-ghost btn-xs" data-visible="0">Show</button>
+      </div>
+
+      <label class="field-label" style="margin-top:8px">Mode</label>
+      <div class="mode-row" style="margin-bottom:2px">
+        <button class="mode-btn active" id="import-mode-merge"   data-imode="merge">Merge contacts</button>
+        <button class="mode-btn"        id="import-mode-replace" data-imode="replace">Replace all</button>
+      </div>
+      <div id="import-mode-desc" class="hint" style="margin-bottom:4px">
+        Merge: keeps your existing contacts and adds new ones from the backup.
+      </div>
+
+      <button id="btn-import" class="btn-primary btn-sm" disabled style="margin-top:6px">
+        Import backup
+      </button>
+      <div id="import-err" class="err-banner hidden" style="margin-top:8px"></div>
+      <div id="import-ok"  class="ok-banner  hidden" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SETTINGS -->
+  <div class="panel hidden" id="tab-settings">
+    <div class="card">
+      <div class="card-title">Supported platforms</div>
+      <div class="plat-grid">
+        <div class="plat"><span>Discord</span><span class="on">Active</span></div>
+        <div class="plat"><span>Slack</span><span class="on">Active</span></div>
+        <div class="plat"><span>WhatsApp Web</span><span class="on">Active</span></div>
+        <div class="plat"><span>Telegram Web</span><span class="on">Active</span></div>
+        <div class="plat"><span>Instagram DMs</span><span class="on">Active</span></div>
+        <div class="plat"><span>X / Twitter DMs</span><span class="on">Active</span></div>
+        <div class="plat"><span>Facebook Messenger</span><span class="on">Active</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Preferences</div>
+      <div class="setting">
+        <div><div class="sname">Blur ciphertext in feed</div><div class="sdesc">Replace raw ciphertext with a click-to-decrypt overlay</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-blur" checked><span></span></label>
+      </div>
+      <div class="setting">
+        <div><div class="sname">Auto-detect recipient</div><div class="sdesc">Pre-fill from current DM context</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-auto" checked><span></span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">About</div>
+      <div class="about"><span class="al">Version</span><span>0.2.0</span></div>
+      <div class="about"><span class="al">Crypto</span><span>ECDH P-256 · AES-256-GCM · AES-KW</span></div>
+      <div class="about"><span class="al">Group</span><span>Per-message DEK, per-recipient slot</span></div>
+      <div class="about"><span class="al">GPG</span><span>ECC (P-256/384/521) native bridge</span></div>
+      <div class="about"><span class="al">Keys stored</span><span>Local only (IndexedDB)</span></div>
+    </div>
+  </div>
+
+</div>
+<script src="popup.js"></script>
+</body>
+</html>

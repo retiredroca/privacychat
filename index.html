@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CryptoChat</title>
+<meta name="description" content="End-to-end encrypted messages on Discord, Slack, WhatsApp, Telegram, Instagram, X/Twitter, and Facebook."/>
+<style>
+:root {
+  --acc: #6C4FF0; --acc-l: #EBE7FD; --acc-d: #5539D6;
+  --grn: #1D9E75; --grn-l: #E1F5EE;
+  --red: #D85A30; --red-l: #FAECE7;
+  --bg: #F8F7FE; --card: #fff;
+  --tx: #1A1625; --tx2: #5A5470; --tx3: #9490AE;
+  --bdr: rgba(108,79,240,.15);
+  --r: 12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{ --bg:#14111F; --card:#1E1B2E; --tx:#EAE8F4; --tx2:#9E9BBD; --tx3:#6B6889;
+    --acc-l:rgba(108,79,240,.18); --grn-l:rgba(29,158,117,.14); --bdr:rgba(108,79,240,.25); }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);
+  color:var(--tx);min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:24px 16px 60px}
+a{color:var(--acc)}
+
+/* ── Header ── */
+.site-header{width:100%;max-width:700px;display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:48px;padding-top:8px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--acc);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-name{font-size:18px;font-weight:700;color:var(--tx);letter-spacing:-.02em}
+.gh-link{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx2);
+  text-decoration:none;padding:6px 12px;border:1px solid var(--bdr);border-radius:999px;
+  transition:background .15s}
+.gh-link:hover{background:var(--acc-l);color:var(--acc)}
+.gh-link svg{opacity:.7}
+
+/* ── Hero (homepage) ── */
+#page-home{width:100%;max-width:700px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.hero-badge{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--acc);background:var(--acc-l);padding:4px 14px;border-radius:999px;margin-bottom:20px}
+.hero-title{font-size:clamp(28px,6vw,48px);font-weight:800;letter-spacing:-.03em;
+  line-height:1.1;margin-bottom:16px}
+.hero-title span{color:var(--acc)}
+.hero-sub{font-size:17px;color:var(--tx2);max-width:520px;line-height:1.6;margin-bottom:36px}
+.install-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:52px}
+.btn-install{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;
+  border-radius:var(--r);font-size:14px;font-weight:600;text-decoration:none;
+  transition:opacity .15s,transform .1s}
+.btn-install:active{transform:scale(.97)}
+.btn-chrome{background:var(--acc);color:#fff}
+.btn-chrome:hover{opacity:.88}
+.btn-ff{background:var(--card);color:var(--tx);border:1px solid var(--bdr)}
+.btn-ff:hover{background:var(--acc-l);color:var(--acc);border-color:var(--acc)}
+.platforms{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:52px}
+.plat-chip{font-size:12px;padding:4px 12px;border-radius:999px;background:var(--card);
+  border:1px solid var(--bdr);color:var(--tx2)}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:16px;width:100%;margin-bottom:20px}
+.feat{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:18px;text-align:left}
+.feat-icon{font-size:22px;margin-bottom:10px}
+.feat-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.feat-desc{font-size:13px;color:var(--tx2);line-height:1.5}
+
+/* ── Add-contact page ── */
+#page-add{width:100%;max-width:440px;display:none;flex-direction:column;align-items:center;gap:16px}
+.contact-card{width:100%;background:var(--card);border:1px solid var(--bdr);
+  border-radius:16px;padding:24px;text-align:center}
+.contact-avatar{width:64px;height:64px;border-radius:50%;background:var(--acc-l);
+  color:var(--acc);display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;margin:0 auto 14px}
+.contact-name{font-size:20px;font-weight:700;margin-bottom:4px}
+.contact-handle{font-size:14px;color:var(--tx2);margin-bottom:4px}
+.contact-platform{font-size:12px;color:var(--tx3);margin-bottom:16px}
+.fp-box{background:var(--bg);border:1px solid var(--bdr);border-radius:8px;
+  padding:8px 12px;font-family:monospace;font-size:11px;color:var(--tx2);
+  word-break:break-all;text-align:left;margin-bottom:20px;line-height:1.6}
+.fp-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--tx3);display:block;margin-bottom:3px}
+
+.btn-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  padding:14px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);
+  font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;
+  text-decoration:none}
+.btn-add:hover{opacity:.88}
+.btn-add:active{transform:scale(.97)}
+.btn-add:disabled{opacity:.45;cursor:not-allowed}
+
+/* Status messages */
+.status{width:100%;padding:12px 16px;border-radius:var(--r);font-size:14px;
+  text-align:center;line-height:1.5;display:none}
+.status.show{display:block}
+.status-ok  {background:var(--grn-l);color:#085041;border:1px solid rgba(29,158,117,.3)}
+.status-err {background:var(--red-l);color:#7B2B0E;border:1px solid rgba(216,90,48,.3)}
+.status-info{background:var(--acc-l);color:#3D2B8F;border:1px solid rgba(108,79,240,.25)}
+
+/* No-extension notice */
+.no-ext{width:100%;background:var(--card);border:1px solid var(--bdr);
+  border-radius:var(--r);padding:20px;text-align:center;display:none}
+.no-ext.show{display:block}
+.no-ext-title{font-weight:600;margin-bottom:6px}
+.no-ext-sub{font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.5}
+
+/* Manual fallback key box */
+.manual-key{background:var(--bg);border:1px solid var(--bdr);border-radius:8px;
+  padding:10px 12px;font-family:monospace;font-size:10px;color:var(--tx2);
+  word-break:break-all;text-align:left;max-height:80px;overflow-y:auto;margin-bottom:12px}
+.copy-row{display:flex;gap:8px;justify-content:center}
+.btn-sm{padding:7px 16px;border:1px solid var(--bdr);border-radius:8px;
+  background:transparent;font-size:13px;color:var(--tx2);cursor:pointer;
+  transition:background .12s}
+.btn-sm:hover{background:var(--acc-l);color:var(--acc);border-color:var(--acc)}
+
+/* ── Donate ── */
+.donate-section{width:100%;max-width:480px;margin-top:52px;text-align:center}
+.donate-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--tx3);margin-bottom:12px}
+.donate-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;
+  padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.donate-title{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.donate-sub{font-size:13px;color:var(--tx2);line-height:1.6;max-width:320px}
+.btc-qr{width:160px;height:160px;border-radius:12px;border:1px solid var(--bdr);
+  background:white;padding:8px;image-rendering:pixelated}
+.btc-qr-wrap{position:relative;display:inline-block}
+.btc-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:32px;height:32px;background:#F7931A;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;border:3px solid white;
+  font-size:14px;font-weight:900;color:white;line-height:1}
+.btc-address-row{display:flex;align-items:center;gap:8px;
+  background:var(--bg);border:1px solid var(--bdr);border-radius:8px;
+  padding:8px 12px;width:100%;max-width:380px}
+.btc-address{font-family:monospace;font-size:11px;color:var(--tx2);
+  flex:1;word-break:break-all;line-height:1.5;text-align:left}
+.btn-copy-btc{flex-shrink:0;padding:5px 12px;border:1px solid var(--bdr);
+  border-radius:6px;background:transparent;font-size:12px;color:var(--tx2);
+  cursor:pointer;transition:background .12s,color .12s;white-space:nowrap}
+.btn-copy-btc:hover{background:var(--acc-l);color:var(--acc);border-color:var(--acc)}
+.btc-open{display:inline-flex;align-items:center;gap:6px;font-size:13px;
+  color:var(--tx3);text-decoration:none;transition:color .15s}
+.btc-open:hover{color:#F7931A}
+/* ── Footer ── */
+footer{margin-top:auto;padding-top:40px;font-size:12px;color:var(--tx3);text-align:center}
+footer a{color:var(--tx3)}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="logo" href="https://github.com/retiredroca/CryptoChat">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+        <rect x="5" y="10" width="12" height="10" rx="2.5" fill="white" opacity=".95"/>
+        <path d="M8 10V8a3.5 3.5 0 017 0v2" stroke="white" stroke-width="1.8"
+              stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <span class="logo-name">CryptoChat</span>
+  </a>
+  <a class="gh-link" href="https://github.com/retiredroca/CryptoChat" target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483
+        0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466
+        -.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832
+        .092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688
+        -.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004
+        1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651
+        .64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855
+        0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017
+        C22 6.484 17.522 2 12 2z"/>
+    </svg>
+    GitHub
+  </a>
+</header>
+
+<!-- ══ HOME PAGE ══════════════════════════════════════════════════════════ -->
+<div id="page-home">
+  <div class="hero-badge">Open Source · Zero Server · E2E Encrypted</div>
+  <h1 class="hero-title">Private chats on<br><span>any platform</span></h1>
+  <p class="hero-sub">
+    CryptoChat is a browser extension that adds end-to-end encryption to Discord,
+    Slack, WhatsApp Web, Telegram, Instagram, X/Twitter, and Facebook Messenger.
+    Your keys never leave your device.
+  </p>
+
+  <div class="install-btns">
+    <a class="btn-install btn-chrome"
+       href="https://github.com/retiredroca/CryptoChat/releases/latest/download/cryptochat-chrome.zip">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="4" fill="white"/>
+        <path d="M12 8h8.9M6.6 20l4.4-7.6M6.6 4l4.4 7.6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Chrome / Brave / Edge
+    </a>
+    <a class="btn-install btn-ff"
+       href="https://github.com/retiredroca/CryptoChat/releases/latest/download/cryptochat-firefox.xpi">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+        <path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      Firefox
+    </a>
+  </div>
+
+  <div class="platforms">
+    <span class="plat-chip">Discord</span>
+    <span class="plat-chip">Slack</span>
+    <span class="plat-chip">WhatsApp Web</span>
+    <span class="plat-chip">Telegram Web</span>
+    <span class="plat-chip">Instagram DMs</span>
+    <span class="plat-chip">X / Twitter</span>
+    <span class="plat-chip">Facebook Messenger</span>
+  </div>
+
+  <div class="features">
+    <div class="feat">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">AES-256-GCM</div>
+      <div class="feat-desc">Every message encrypted with a unique random key. Platforms only see ciphertext.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔑</div>
+      <div class="feat-title">Keys stay local</div>
+      <div class="feat-desc">Your private key never leaves your browser. Stored in IndexedDB, never synced.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">👥</div>
+      <div class="feat-title">Group encryption</div>
+      <div class="feat-desc">One message, multiple recipients. Each gets their own encrypted key slot.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🗝️</div>
+      <div class="feat-title">GPG compatible</div>
+      <div class="feat-desc">Import OpenPGP public keys from Kleopatra or any GPG keychain.</div>
+    </div>
+  </div>
+
+  <!-- Donate -->
+  <div class="donate-section">
+    <div class="donate-label">Support the project</div>
+    <div class="donate-card">
+      <div class="donate-title">Buy me a coffee ☕</div>
+      <div class="donate-sub">
+        CryptoChat is free, open source, and has no ads or subscriptions.
+        If it's useful to you, a small Bitcoin donation keeps development going.
+      </div>
+
+      <div class="btc-qr-wrap">
+        <img class="btc-qr" id="btc-qr"
+          src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data=bitcoin%3Abc1qrr2tcdmz9ktf3ss73gc6g427k7x90zvdn5jd59"
+          alt="Bitcoin QR code for bc1qrr2tcdmz9ktf3ss73gc6g427k7x90zvdn5jd59"
+          width="160" height="160"
+          onerror="this.style.display='none'"
+        />
+        <div class="btc-icon">₿</div>
+      </div>
+
+      <div class="btc-address-row">
+        <span class="btc-address" id="btc-addr">bc1qrr2tcdmz9ktf3ss73gc6g427k7x90zvdn5jd59</span>
+        <button class="btn-copy-btc" id="btn-copy-btc">Copy</button>
+      </div>
+
+      <a class="btc-open" href="bitcoin:bc1qrr2tcdmz9ktf3ss73gc6g427k7x90zvdn5jd59" title="Open in Bitcoin wallet">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Open in Bitcoin wallet
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ ADD-CONTACT PAGE ═══════════════════════════════════════════════════ -->
+<div id="page-add">
+
+  <div class="contact-card" id="contact-card">
+    <div class="contact-avatar" id="contact-avatar">?</div>
+    <div class="contact-name"     id="contact-name">Loading…</div>
+    <div class="contact-handle"   id="contact-handle"></div>
+    <div class="contact-platform" id="contact-platform"></div>
+    <div class="fp-box">
+      <span class="fp-label">Key fingerprint</span>
+      <span id="contact-fp">—</span>
+    </div>
+    <button class="btn-add" id="btn-add-contact" disabled>
+      <svg width="16" height="16" viewBox="0 0 22 22" fill="none">
+        <rect x="5" y="10" width="12" height="10" rx="2.5" fill="white" opacity=".9"/>
+        <path d="M8 10V8a3.5 3.5 0 017 0v2" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      </svg>
+      Add to CryptoChat
+    </button>
+  </div>
+
+  <div class="status status-ok"   id="status-ok"></div>
+  <div class="status status-err"  id="status-err"></div>
+  <div class="status status-info" id="status-info"></div>
+
+  <!-- Shown when extension is not detected -->
+  <div class="no-ext" id="no-ext">
+    <div class="no-ext-title">CryptoChat extension not detected</div>
+    <div class="no-ext-sub">
+      Install CryptoChat first, then come back to this link to add the contact automatically.
+      Or copy the public key below and add it manually in the Contacts tab.
+    </div>
+    <div class="manual-key" id="manual-key"></div>
+    <div class="copy-row">
+      <button class="btn-sm" id="btn-copy-manual">Copy public key</button>
+      <a class="btn-sm" href="https://github.com/retiredroca/CryptoChat" target="_blank">Install CryptoChat</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>
+    <a href="https://github.com/retiredroca/CryptoChat" target="_blank" rel="noopener">CryptoChat on GitHub</a>
+    &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; No servers. No tracking. No ads.
+  </p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Bitcoin donation copy button ────────────────────────────────────
+  const btcBtn = document.getElementById('btn-copy-btc');
+  if (btcBtn) {
+    btcBtn.addEventListener('click', () => {
+      const addr = document.getElementById('btc-addr').textContent.trim();
+      navigator.clipboard.writeText(addr).then(() => {
+        btcBtn.textContent = 'Copied!';
+        setTimeout(() => { btcBtn.textContent = 'Copy'; }, 2000);
+      });
+    });
+  }
+
+  // ── Parse the share link fragment ──────────────────────────────────────
+  // Format: #v1;handle;platform;pubKeyB64;displayName;fingerprint
+  // All fields URI-component encoded.
+
+  const GITHUB_REPO = 'https://github.com/retiredroca/CryptoChat';
+  const EXT_SIGNAL  = 'data-cryptochat-installed'; // set by content script on this page
+
+  function parseFragment() {
+    const hash = location.hash.slice(1); // strip leading #
+    if (!hash.startsWith('v1;')) return null;
+    const parts = hash.split(';').map(p => { try { return decodeURIComponent(p); } catch { return p; } });
+    if (parts.length < 5) return null;
+    const [, handle, platform, pubKeyB64, displayName, fingerprint] = parts;
+    if (!handle || !pubKeyB64) return null;
+    return { handle, platform: platform || 'unknown', pubKeyB64, displayName: displayName || handle, fingerprint: fingerprint || '' };
+  }
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(w => w[0] ?? '?').join('').toUpperCase().slice(0, 2);
+  }
+
+  function platformLabel(id) {
+    const map = {
+      discord: 'Discord', slack: 'Slack', whatsapp: 'WhatsApp Web',
+      telegram: 'Telegram Web', instagram: 'Instagram',
+      twitter: 'X / Twitter', facebook: 'Facebook Messenger'
+    };
+    return map[id] || id;
+  }
+
+  function fmtFp(fp) {
+    if (!fp || fp.length < 16) return fp || '—';
+    const clean = fp.replace(/\s/g, '');
+    // Insert a space every 4 hex chars for readability
+    return clean.match(/.{1,4}/g)?.join(' ') || fp;
+  }
+
+  // ── Check if the extension is installed ───────────────────────────────
+  // The content script injects a hidden element on this page when present.
+  function isExtInstalled() {
+    return document.querySelector(`[${EXT_SIGNAL}]`) !== null;
+  }
+
+  // ── Send add-contact message to extension via postMessage ─────────────
+  // Content script on this page listens for window messages with type
+  // 'CC_ADD_CONTACT' and forwards to the background service worker.
+  function sendToExtension(contact) {
+    return new Promise((resolve, reject) => {
+      const id = 'cc-' + Math.random().toString(36).slice(2);
+
+      function handler(e) {
+        if (e.data?.ccReplyId !== id) return;
+        window.removeEventListener('message', handler);
+        clearTimeout(timer);
+        if (e.data.error) reject(new Error(e.data.error));
+        else resolve(e.data);
+      }
+
+      window.addEventListener('message', handler);
+      window.postMessage({ type: 'CC_ADD_CONTACT', ccMsgId: id, contact }, '*');
+
+      const timer = setTimeout(() => {
+        window.removeEventListener('message', handler);
+        reject(new Error('Extension did not respond — is it installed and enabled?'));
+      }, 3000);
+    });
+  }
+
+  // ── Main ──────────────────────────────────────────────────────────────
+  const contact = parseFragment();
+
+  if (!contact) {
+    // No valid fragment — show the homepage
+    document.getElementById('page-home').style.display = 'flex';
+    return;
+  }
+
+  // Show the add-contact page
+  document.getElementById('page-home').style.display = 'none';
+  document.getElementById('page-add').style.display  = 'flex';
+
+  // Populate the contact card
+  document.getElementById('contact-avatar').textContent   = initials(contact.displayName);
+  document.getElementById('contact-name').textContent     = contact.displayName;
+  document.getElementById('contact-handle').textContent   = contact.handle;
+  document.getElementById('contact-platform').textContent = platformLabel(contact.platform);
+  document.getElementById('contact-fp').textContent       = fmtFp(contact.fingerprint);
+  document.getElementById('manual-key').textContent       = contact.pubKeyB64;
+
+  // Wait briefly for content script to signal its presence
+  setTimeout(() => {
+    const extPresent = isExtInstalled();
+
+    const btn      = document.getElementById('btn-add-contact');
+    const noExtEl  = document.getElementById('no-ext');
+    const infoEl   = document.getElementById('status-info');
+
+    if (extPresent) {
+      btn.disabled = false;
+      infoEl.textContent = 'CryptoChat detected ✓ — click the button to add this contact instantly.';
+      infoEl.classList.add('show');
+    } else {
+      btn.disabled = true;
+      noExtEl.classList.add('show');
+    }
+
+    // Manual copy button (always works regardless of extension)
+    document.getElementById('btn-copy-manual').addEventListener('click', () => {
+      navigator.clipboard.writeText(contact.pubKeyB64).then(() => {
+        document.getElementById('btn-copy-manual').textContent = 'Copied!';
+        setTimeout(() => { document.getElementById('btn-copy-manual').textContent = 'Copy public key'; }, 1600);
+      });
+    });
+
+    // Add contact button
+    btn.addEventListener('click', async () => {
+      btn.disabled    = true;
+      btn.textContent = 'Adding…';
+
+      const okEl  = document.getElementById('status-ok');
+      const errEl = document.getElementById('status-err');
+      infoEl.classList.remove('show');
+
+      try {
+        await sendToExtension(contact);
+        okEl.textContent = `✓ ${contact.displayName} added to CryptoChat! Switch back to the platform to start messaging.`;
+        okEl.classList.add('show');
+        btn.textContent = 'Added ✓';
+      } catch (e) {
+        errEl.textContent = '✗ ' + (e.message || 'Could not reach extension');
+        errEl.classList.add('show');
+        btn.disabled    = false;
+        btn.textContent = 'Add to CryptoChat';
+      }
+    });
+  }, 600); // give content script time to inject the signal element
+
+})();
+</script>
+</body>
+</html>
