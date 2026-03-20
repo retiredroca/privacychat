@@ -39,14 +39,16 @@ const REQUIRED = [
   'src/ui/popup.html',
   'src/ui/popup.css',
   'src/ui/popup.js',
-  'src/adapters/discord.js',
-  'src/adapters/slack.js',
-  'src/adapters/others.js',
-  'src/adapters/instagram.js',
-  'src/adapters/twitter.js',
   'icons/icon16.png',
   'icons/icon48.png',
   'icons/icon128.png',
+];
+
+// Source reference files — not used by the running extension,
+// but kept in the repo for readability and auditing
+const REFERENCE = [
+  'src/crypto/engine.js',
+  'src/crypto/keystore.js',
 ];
 
 function verify() {
@@ -60,6 +62,17 @@ function verify() {
     } else {
       console.log(R('  ✗  MISSING: ') + f);
       ok = false;
+    }
+  }
+
+  console.log('');
+  for (const f of REFERENCE) {
+    const full = path.join(ROOT, f);
+    if (fs.existsSync(full)) {
+      const kb = (fs.statSync(full).size / 1024).toFixed(1);
+      console.log(G('  ✓') + `  ${f.padEnd(44)} ${kb} KB  (reference)`);
+    } else {
+      console.log(Y('  ·  missing: ') + f + Y('  (reference — not required)'));
     }
   }
 

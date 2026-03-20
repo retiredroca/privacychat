@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "CryptoChat",
-  "version": "0.5.1",
-  "description": "E2E encrypted messaging on various chat platforms. Supports ECDH keys and GPG/OpenPGP import.",
+  "version": "0.5.0",
+  "description": "E2E encrypted messages on Discord, Slack, WhatsApp, Telegram, Instagram, X/Twitter, and Facebook. Supports ECDH keys and GPG/OpenPGP import.",
   "permissions": [
     "storage",
     "activeTab",

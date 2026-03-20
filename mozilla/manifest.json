@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CryptoChat",
-  "version": "0.5.1",
+  "version": "0.5.0",
   "description": "E2E encrypted messages on Discord, Slack, WhatsApp, Telegram, Instagram, X/Twitter, and Facebook. Supports ECDH keys and GPG/OpenPGP import.",
   "permissions": [
     "storage",
@@ -63,10 +63,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "cryptochat@extension",
-	  "strict_min_version": "140.0",
-      "data_collection_permissions": {
-        "required": ["none"]
-	  }
-	}
+      "strict_min_version": "109.0"
+    }
   }
 }
