@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  overlay_button.xml
+  The draggable floating 🔒 button that sits over other apps.
+  Kept deliberately small (48dp) so it doesn't obscure content.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ImageButton
+        android:id="@+id/overlay_btn"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/btn_background"
+        android:src="@drawable/ic_lock"
+        android:contentDescription="CryptoChat — tap to encrypt"
+        android:elevation="8dp"
+        android:scaleType="centerInside"
+        android:padding="12dp" />
+
+</FrameLayout>
