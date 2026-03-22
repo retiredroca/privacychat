@@ -216,10 +216,26 @@
       <div class="card-title">Import backup</div>
       <div class="card-sub">Restore from a <code>.ccbackup</code> file. Merge keeps existing contacts; replace overwrites everything.</div>
       <label class="field-label" style="margin-top:4px">Backup file</label>
+
+      <!-- Drop zone — drag a .ccbackup file onto this area -->
       <div class="file-drop-zone" id="import-drop">
-        <span id="import-drop-label">Drop .ccbackup here or <label for="import-file-input" class="file-link">browse</label></span>
-        <input type="file" id="import-file-input" accept=".ccbackup,.json" style="display:none" />
+        <span id="import-drop-label">Drop .ccbackup file here</span>
       </div>
+
+      <!-- Paste fallback — avoids native file picker which closes Firefox popup -->
+      <div style="margin-top:6px">
+        <label class="field-label">
+          Or paste file contents
+          <span class="hint">(open .ccbackup in a text editor, select all, paste)</span>
+        </label>
+        <textarea id="import-paste"
+          class="text-input mono"
+          rows="3"
+          placeholder='{"version":2,"iv":"...","cipher":"..."}'
+          style="font-size:11px;resize:vertical"></textarea>
+        <button id="btn-load-paste" class="btn-ghost btn-sm" style="margin-top:4px">Load pasted content</button>
+      </div>
+
       <label class="field-label" style="margin-top:8px">Passphrase</label>
       <div class="row-gap">
         <input type="password" id="import-pass" class="text-input" placeholder="Passphrase used when exporting" style="flex:1" />

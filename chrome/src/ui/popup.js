@@ -515,30 +515,45 @@ async function initBackup() {
     }
   });
 
-  // ── Import — file input & drag-drop ─────────────────────────
+  // ── Import — drag-drop + paste ────────────────────────────────
+  // The native file picker (<input type="file">) is intentionally removed.
+  // In Firefox, opening the OS file picker steals focus from the popup
+  // window, causing it to close immediately — making import impossible
+  // without manually setting ui.popup.disable_autohide in about:config.
+  //
+  // Instead we support:
+  //   1. Drag-and-drop a .ccbackup file onto the drop zone (works in both browsers)
+  //   2. Open the .ccbackup in any text editor, copy all, paste into the textarea
   let importFileContent = null;
 
   const dropZone  = $('import-drop');
-  const fileInput = $('import-file-input');
   const dropLabel = $('import-drop-label');
+
+  function loadText(text, label) {
+    text = text.trim();
+    if (!text) return;
+    // Quick sanity check — .ccbackup files are JSON starting with {
+    if (!text.startsWith('{')) {
+      showErr('import-err', 'This doesn\'t look like a .ccbackup file — expected JSON');
+      return;
+    }
+    importFileContent = text;
+    dropZone.classList.add('has-file');
+    dropLabel.textContent = `✓ ${label} loaded`;
+    $('btn-import').disabled = false;
+    $('import-err').classList.add('hidden');
+    $('import-ok').classList.add('hidden');
+  }
 
   function loadFile(file) {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
-      importFileContent = e.target.result;
-      dropZone.classList.add('has-file');
-      dropLabel.textContent = `✓ ${file.name}`;
-      $('btn-import').disabled = false;
-      $('import-err').classList.add('hidden');
-      $('import-ok').classList.add('hidden');
-    };
+    reader.onload  = e => loadText(e.target.result, file.name);
     reader.onerror = () => showErr('import-err', 'Could not read file');
     reader.readAsText(file);
   }
 
-  fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
-
+  // Drag-and-drop onto the drop zone
   dropZone.addEventListener('dragover', e => {
     e.preventDefault();
     dropZone.classList.add('drag-over');
@@ -548,6 +563,14 @@ async function initBackup() {
     e.preventDefault();
     dropZone.classList.remove('drag-over');
     loadFile(e.dataTransfer.files[0]);
+  });
+
+  // Paste textarea — "Load pasted content" button
+  $('btn-load-paste')?.addEventListener('click', () => {
+    const text = $('import-paste')?.value?.trim();
+    if (!text) { showErr('import-err', 'Paste your .ccbackup file contents first'); return; }
+    loadText(text, 'pasted backup');
+    if ($('import-paste')) $('import-paste').value = '';
   });
 
   // ── Import mode toggle ───────────────────────────────────────
@@ -607,9 +630,9 @@ async function initBackup() {
 
       // Reset the import form
       importFileContent = null;
-      fileInput.value   = '';
       dropZone.classList.remove('has-file');
-      dropLabel.innerHTML = 'Drop .ccbackup here or <label for="import-file-input" class="file-link">browse</label>';
+      dropLabel.textContent = 'Drop .ccbackup file here';
+      $('import-paste') && ($('import-paste').value = '');
       $('import-pass').value = '';
       $('btn-import').disabled = true;
 
