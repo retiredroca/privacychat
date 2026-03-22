@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CryptoChat",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "E2E encrypted text. Supports ECDH keys and GPG/OpenPGP import.",
   "permissions": [
     "storage",

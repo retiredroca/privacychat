@@ -16,6 +16,10 @@
 (function () {
   'use strict';
 
+  // Top-level guard — if anything throws unexpectedly, log it clearly
+  // instead of producing the opaque ":0 (anonymous function)" error.
+  try {
+
   /* ════════════════════════════════════════════════════════════════════
      WIRE FORMAT REGEXES
   ════════════════════════════════════════════════════════════════════ */
@@ -515,7 +519,18 @@
   ccBtn.style.right  = savedPos.right  + 'px';
   ccBtn.style.bottom = savedPos.bottom + 'px';
 
-  document.body.appendChild(ccBtn);
+  // Defer DOM insertion until body is available — on some pages (iframes,
+  // PDFs, extension pages) document.body is null at content-script run time
+  // and appendChild would throw, killing the entire IIFE.
+  function mountButton() {
+    if (!document.body) return;
+    document.body.appendChild(ccBtn);
+  }
+  if (document.body) {
+    mountButton();
+  } else {
+    document.addEventListener('DOMContentLoaded', mountButton, { once: true });
+  }
 
   // ── Drag logic ────────────────────────────────────────────────────
   let dragging = false;
@@ -717,7 +732,11 @@
 
     ccShadow.getElementById('cc-send').addEventListener('click', doEncrypt);
 
-    document.body.appendChild(ccHost);
+    if (document.body) {
+      document.body.appendChild(ccHost);
+    } else {
+      document.addEventListener('DOMContentLoaded', () => document.body.appendChild(ccHost), { once: true });
+    }
   }
 
   function checkReady() {
@@ -862,5 +881,10 @@
 
   // Re-position panel on resize
   window.addEventListener('resize', () => { if (panelOpen) positionPanel(); }, { passive: true });
+
+  } catch (err) {
+    // Surface the real error in the console rather than ":0 (anonymous function)"
+    console.error('[CryptoChat] Content script error:', err);
+  }
 
 })();
